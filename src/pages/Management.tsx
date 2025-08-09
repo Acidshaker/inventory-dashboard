@@ -1,6 +1,6 @@
 import { Box, Tab, Tabs } from "@mui/material";
 import { use, useEffect, useRef, useState } from "react";
-import CategoryIcon from "@mui/icons-material/category";
+import CategoryIcon from "@mui/icons-material/Category";
 import BrandingWatermarkIcon from "@mui/icons-material/BrandingWatermark";
 import PolylineIcon from "@mui/icons-material/Polyline";
 import Table from "../components/shared/Table";
