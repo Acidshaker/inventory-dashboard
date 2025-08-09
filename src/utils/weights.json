@@ -1,0 +1,79 @@
+            // <Typography variant="subtitle1" sx={{ my: 2 }}>
+            //   Detalles del producto
+            // </Typography>
+
+            // <Grid container spacing={2}>
+            //   {/* Color */}
+            //   <Grid size={{ md: 6, xs: 12 }}>
+            //     <Box sx={{ display: "flex", alignItems: "flex-end" }}>
+            //       <PaletteIcon
+            //         sx={{ color: "action.active", mr: 1, my: 0.5 }}
+            //       />
+            //       <TextField
+            //         label="Color"
+            //         fullWidth
+            //         {...register("color")}
+            //         error={!!errors.color}
+            //         helperText={errors.color?.message}
+            //       />
+            //     </Box>
+            //   </Grid>
+
+            //   {/* Dimensiones */}
+            //   <Grid size={{ md: 2, xs: 6 }}>
+            //     <TextField
+            //       label="Ancho"
+            //       type="number"
+            //       fullWidth
+            //       {...register("width")}
+            //       error={!!errors.width}
+            //       helperText={errors.width?.message}
+            //     />
+            //   </Grid>
+
+            //   <Grid size={{ md: 2, xs: 6 }}>
+            //     <TextField
+            //       label="Largo"
+            //       type="number"
+            //       fullWidth
+            //       {...register("length")}
+            //       error={!!errors.length}
+            //       helperText={errors.length?.message}
+            //     />
+            //   </Grid>
+
+            //   <Grid size={{ md: 2, xs: 6 }}>
+            //     <TextField
+            //       label="Espesor"
+            //       type="number"
+            //       fullWidth
+            //       {...register("thickness")}
+            //       error={!!errors.thickness}
+            //       helperText={errors.thickness?.message}
+            //     />
+            //   </Grid>
+
+            //   <Grid size={{ md: 2, xs: 6 }}>
+            //     <TextField
+            //       label="Grosor"
+            //       type="number"
+            //       fullWidth
+            //       {...register("weight")}
+            //       error={!!errors.weight}
+            //       helperText={errors.weight?.message}
+            //     />
+            //   </Grid>
+
+            //   {/* Descripción */}
+            //   <Grid size={{ md: 12, xs: 12 }}>
+            //     <TextField
+            //       label="Descripción"
+            //       fullWidth
+            //       multiline
+            //       rows={3}
+            //       {...register("description")}
+            //       error={!!errors.description}
+            //       helperText={errors.description?.message}
+            //     />
+            //   </Grid>
+            // </Grid>
