@@ -134,7 +134,7 @@ const Table = forwardRef(
         try {
           if (tableConfig[action]?.reactiveFunction) {
             await tableConfig[action]?.reactiveFunction(id);
-            getData();
+            isActiveFilter(true)();
             toast.success("Elemento activado con éxito");
           }
         } catch (err) {
@@ -293,9 +293,11 @@ const Table = forwardRef(
                   >
                     <SearchIcon />
                   </IconButton>
-                  <IconButton onClick={handleOpenMenu}>
-                    <FilterListIcon />
-                  </IconButton>
+                  {action !== "inventory" && (
+                    <IconButton onClick={handleOpenMenu}>
+                      <FilterListIcon />
+                    </IconButton>
+                  )}
                 </InputAdornment>
               ),
             }}

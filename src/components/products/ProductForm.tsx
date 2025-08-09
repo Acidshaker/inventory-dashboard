@@ -188,7 +188,7 @@ export const ProductForm = ({
         const hadImage = !!item?.productImage;
 
         if (imageDeleted && hadImage) {
-          formData.append("file", ""); // 🗑️ Imagen eliminada
+          formData.append("deleteImage", "true"); // 🗑️ Imagen eliminada
         } else if (productImage instanceof File) {
           formData.append("file", productImage); // ✅ Imagen nueva
         }
