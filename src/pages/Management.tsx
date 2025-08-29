@@ -65,14 +65,7 @@ export const Management = () => {
   };
 
   return (
-    <Box
-      sx={{
-        height: "100%",
-        flexGrow: 1,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <Box sx={{}}>
       <Tabs
         centered
         sx={{ my: 4 }}
@@ -87,7 +80,7 @@ export const Management = () => {
       <Box sx={{ paddingTop: "20px" }}>
         <h3>{config.title}</h3>
       </Box>
-      <Box sx={{ flexGrow: 1 }}>
+      <Box sx={{ flexGrow: 1, mt: 4 }}>
         <Table
           key={config.action}
           ref={tableRef}

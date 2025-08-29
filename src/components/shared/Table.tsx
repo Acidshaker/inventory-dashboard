@@ -10,13 +10,26 @@ import {
   Tooltip,
   Typography,
   ListItemText,
+  useTheme,
+  TableContainer,
+  Paper,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  TablePagination,
+  Fade,
 } from "@mui/material";
-import { confirmationAlert } from "../../utils/alerts";
+import Table from "@mui/material/Table";
+import { useAlerts } from "../../utils/alerts";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import CachedIcon from "@mui/icons-material/Cached";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import AddIcon from "@mui/icons-material/Add";
 import SentimentVeryDissatisfiedIcon from "@mui/icons-material/SentimentVeryDissatisfied";
 import SettingsBackupRestoreIcon from "@mui/icons-material/SettingsBackupRestore";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -45,7 +58,7 @@ interface Props {
   onAddClick: (data?: Record<string, any>) => void;
 }
 
-const Table = forwardRef(
+const BaseTable = forwardRef(
   (
     {
       action,
@@ -61,6 +74,7 @@ const Table = forwardRef(
   ) => {
     const dispatch = useDispatch();
     const params = useSelector((state: RootState) => state.ui.params);
+    const loading = useSelector((state: RootState) => state.ui.loading);
 
     const [data, setData] = useState<any[]>([]);
     const [count, setCount] = useState(0);
@@ -69,6 +83,35 @@ const Table = forwardRef(
     const [resetPaginationToggle, setResetPaginationToggle] = useState(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [hasSearched, setHasSearched] = useState(false);
+    const [orderBy, setOrderBy] = useState<string | null>(null);
+    const [orderDirection, setOrderDirection] = useState<"asc" | "desc">("asc");
+
+    const handleSort = (key: string) => {
+      if (orderBy === key) {
+        setOrderDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+      } else {
+        setOrderBy(key);
+        setOrderDirection("asc");
+      }
+    };
+
+    const sortedData = useMemo(() => {
+      if (!orderBy) return data;
+      return [...data].sort((a, b) => {
+        const aVal = a[orderBy];
+        const bVal = b[orderBy];
+        if (typeof aVal === "number" && typeof bVal === "number") {
+          return orderDirection === "asc" ? aVal - bVal : bVal - aVal;
+        }
+        return orderDirection === "asc"
+          ? String(aVal).localeCompare(String(bVal))
+          : String(bVal).localeCompare(String(aVal));
+      });
+    }, [data, orderBy, orderDirection]);
+
+    const theme = useTheme();
+
+    const { confirmationAlert } = useAlerts();
 
     // Mantener localSearch sincronizado con la store
     useEffect(() => {
@@ -95,6 +138,8 @@ const Table = forwardRef(
 
     // getData ahora acepta params opcionales para evitar leer params "viejos"
     const getData = async (overrideParams?: any) => {
+      setOrderBy(null);
+      setOrderDirection("asc");
       const p = overrideParams ?? params;
       if (!tableConfig[action]) return;
       dispatch(showLoading());
@@ -159,9 +204,11 @@ const Table = forwardRef(
 
       const baseHeaders = tableConfig[action]?.headers || [];
       const actionColumn = {
-        name: "Acciones",
-        cell: (row: any) => (
-          <Box sx={{ display: "flex", gap: 1 }}>
+        key: "actions",
+        label: "Acciones",
+        align: "center",
+        render: (_: any, row: any) => (
+          <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
             {isEdit && row?.isActive ? (
               <Tooltip title="Editar">
                 <IconButton onClick={() => onAddClick(row)} color="info">
@@ -222,46 +269,66 @@ const Table = forwardRef(
       getData(newParams);
     };
 
-    const subHeaderComponentMemo = useMemo(() => {
-      return (
-        <Box
+    return (
+      <Fade in timeout={500}>
+        <Paper
+          elevation={1}
           sx={{
+            flex: 1,
             display: "flex",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: 2,
-            paddingY: 1,
+            flexDirection: "column",
+            height: "100%",
+            minHeight: "400px",
           }}
         >
-          <TextField
-            variant="outlined"
-            size="small"
-            placeholder="Buscar"
-            value={localSearch}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                const newParams = {
-                  ...params,
-                  search: localSearch,
-                  page: 1,
-                  offset: 0,
-                };
-                dispatch(setParams(newParams));
-                setHasSearched(true);
-                getData(newParams);
-              }
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "end",
+              alignItems: "center",
+              px: 2,
+              py: 2,
+              flexWrap: "wrap",
+              gap: 2,
             }}
-            onChange={(e) => setLocalSearch(e.target.value)}
-            sx={{ width: "260px" }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  {localSearch ? (
-                    <IconButton
-                      size="small"
-                      onClick={() => {
-                        // Solo recargamos si previamente se hizo una búsqueda real
-                        if (hasSearched) {
+          >
+            <Box
+              sx={{
+                display: "flex",
+                gap: 1,
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              <TextField
+                size="small"
+                placeholder="Buscar..."
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const newParams = {
+                      ...params,
+                      search: localSearch,
+                      page: 1,
+                      offset: 0,
+                    };
+                    dispatch(setParams(newParams));
+                    getData(newParams);
+                    setHasSearched(true);
+                  }
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                  endAdornment: hasSearched && (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => {
+                          setLocalSearch("");
                           const newParams = {
                             ...params,
                             search: "",
@@ -269,145 +336,173 @@ const Table = forwardRef(
                             offset: 0,
                           };
                           dispatch(setParams(newParams));
-                          setHasSearched(false);
                           getData(newParams);
-                        }
-                        setLocalSearch("");
+                          setHasSearched(false);
+                        }}
+                      >
+                        <ClearIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+
+              {action !== "inventory" && (
+                <Tooltip title="Filtros">
+                  <IconButton onClick={handleOpenMenu}>
+                    <FilterListIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
+
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleCloseMenu}
+              >
+                <MenuItem onClick={isActiveFilter(true)}>
+                  <Checkbox checked={params.isActive === true} />
+                  <ListItemText primary="Activos" />
+                </MenuItem>
+                <MenuItem onClick={isActiveFilter(false)}>
+                  <Checkbox checked={params.isActive === false} />
+                  <ListItemText primary="Inactivos" />
+                </MenuItem>
+              </Menu>
+
+              <Tooltip title="Refrescar">
+                <IconButton onClick={() => getData()}>
+                  <CachedIcon />
+                </IconButton>
+              </Tooltip>
+
+              {addLabel && (
+                <Button
+                  variant="contained"
+                  onClick={() => onAddClick()}
+                  endIcon={<AddIcon />}
+                  color="error"
+                >
+                  {addLabel}
+                </Button>
+              )}
+            </Box>
+          </Box>
+          <TableContainer
+            sx={{ flex: 1, overflow: "auto", position: "relative" }}
+          >
+            <Table>
+              <TableHead>
+                <TableRow>
+                  {headers.map((header) => (
+                    <TableCell
+                      key={header.key}
+                      align={header.align ?? "center"}
+                      onClick={() => header.sortable && handleSort(header.key)}
+                      sx={{
+                        cursor: header.sortable ? "pointer" : "default",
+                        userSelect: "none",
                       }}
                     >
-                      <ClearIcon />
-                    </IconButton>
-                  ) : null}
-                  <IconButton
-                    onClick={() => {
-                      const newParams = {
-                        ...params,
-                        search: localSearch,
-                        page: 1,
-                        offset: 0,
-                      };
-                      dispatch(setParams(newParams));
-                      setHasSearched(true);
-                      getData(newParams);
-                    }}
-                  >
-                    <SearchIcon />
-                  </IconButton>
-                  {action !== "inventory" && (
-                    <IconButton onClick={handleOpenMenu}>
-                      <FilterListIcon />
-                    </IconButton>
-                  )}
-                </InputAdornment>
-              ),
+                      <Box
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        gap={0.5}
+                      >
+                        {header.label}
+                        {header.sortable &&
+                          orderBy === header.key &&
+                          (orderDirection === "asc" ? (
+                            <ArrowDropUpIcon fontSize="small" />
+                          ) : (
+                            <ArrowDropDownIcon fontSize="small" />
+                          ))}
+                      </Box>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {!loading &&
+                  sortedData.map((row, idx) => (
+                    <Fade in timeout={400} key={idx}>
+                      <TableRow>
+                        {headers.map((header) => (
+                          <TableCell align={header.align} key={header.key}>
+                            {header.render
+                              ? header.render(row[header.key], row)
+                              : row[header.key]}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </Fade>
+                  ))}
+                {/* <-- NO pongas fila vacía aquí */}
+              </TableBody>
+            </Table>
+
+            {/* Overlay de “sin resultados” que ocupa TODO el alto */}
+            {!loading && data.length === 0 && (
+              <Fade in timeout={400}>
+                <Box
+                  sx={{
+                    position: "absolute",
+                    inset: 0, // top/right/bottom/left: 0
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 1,
+                    opacity: 0.7,
+                    p: 2,
+                    pointerEvents: "none", // no bloquea clicks en header/scroll
+                  }}
+                >
+                  <SentimentVeryDissatisfiedIcon fontSize="large" />
+                  <Typography variant="body1">
+                    No se encontraron resultados
+                  </Typography>
+                </Box>
+              </Fade>
+            )}
+          </TableContainer>
+
+          <TablePagination
+            component="div"
+            count={count}
+            page={params.page - 1}
+            rowsPerPage={params.limit}
+            onPageChange={(_, newPage) => {
+              const newParams = {
+                ...params,
+                page: newPage + 1,
+                offset: newPage * params.limit,
+              };
+              dispatch(setParams(newParams));
+              getData(newParams);
             }}
+            onRowsPerPageChange={(e) => {
+              const newParams = {
+                ...params,
+                limit: parseInt(e.target.value),
+                page: 1,
+                offset: 0,
+              };
+              dispatch(setParams(newParams));
+              getData(newParams);
+            }}
+            rowsPerPageOptions={[5, 10, 25, 50]}
+            labelRowsPerPage="Elementos por página"
+            labelDisplayedRows={({ from, to, count }) =>
+              `${from}–${to} de ${count !== -1 ? count : `más de ${to}`}`
+            }
           />
-
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleCloseMenu}
-            transformOrigin={{ horizontal: "right", vertical: "top" }}
-            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-          >
-            <MenuItem onClick={isActiveFilter(true)}>
-              <Checkbox
-                checked={params.isActive === true}
-                color="error"
-                sx={{ padding: 0.5 }}
-              />
-              <ListItemText primary="Activos" sx={{ ml: 1 }} />
-            </MenuItem>
-
-            <MenuItem onClick={isActiveFilter(false)}>
-              <Checkbox
-                checked={params.isActive === false}
-                color="error"
-                sx={{ padding: 0.5 }}
-              />
-              <ListItemText primary="Inactivos" sx={{ ml: 1 }} />
-            </MenuItem>
-          </Menu>
-
-          <Tooltip title="Actualizar">
-            <IconButton onClick={() => getData()}>
-              <CachedIcon />
-            </IconButton>
-          </Tooltip>
-
-          {addLabel && (
-            <Button
-              variant="contained"
-              color="error"
-              onClick={() => onAddClick()}
-            >
-              {addLabel}
-            </Button>
-          )}
-        </Box>
-      );
-    }, [localSearch, resetPaginationToggle, anchorEl, hasSearched, params]);
-
-    const noDataComponent = useMemo(() => {
-      return (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100%",
-            mt: 3,
-          }}
-        >
-          <Typography variant="body1">No se encontraron resultados</Typography>
-          <SentimentVeryDissatisfiedIcon sx={{ ml: 1 }} />
-        </Box>
-      );
-    }, []);
-
-    return (
-      <Box sx={{ flexGrow: 1 }}>
-        <DataTable
-          columns={headers}
-          data={data}
-          pagination
-          paginationServer
-          paginationTotalRows={count}
-          paginationPerPage={params.limit}
-          paginationDefaultPage={params.page}
-          onChangePage={(page) => {
-            const newParams = {
-              ...params,
-              page,
-              offset: (page - 1) * params.limit,
-            };
-            dispatch(setParams(newParams));
-            getData(newParams);
-          }}
-          onChangeRowsPerPage={(limit) => {
-            const newParams = {
-              ...params,
-              limit,
-              page: 1,
-              offset: 0,
-            };
-            dispatch(setParams(newParams));
-            getData(newParams);
-          }}
-          paginationComponentOptions={paginationOptions}
-          paginationResetDefaultPage={resetPaginationToggle}
-          subHeader
-          subHeaderComponent={subHeaderComponentMemo}
-          selectableRows
-          persistTableHead
-          highlightOnHover
-          striped
-          responsive
-          noDataComponent={noDataComponent}
-        />
-      </Box>
+        </Paper>
+      </Fade>
     );
   }
 );
 
-export default Table;
+export default BaseTable;

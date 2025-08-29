@@ -49,6 +49,7 @@ export const UserForm = ({
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
+    width: "calc(100% - 16px)",
     bgcolor: "background.paper",
     boxShadow: 24,
     p: 4,
@@ -179,7 +180,7 @@ export const UserForm = ({
       }}
     >
       <Fade in={open}>
-        <Container maxWidth="md" sx={style}>
+        <Box maxWidth="md" sx={style}>
           <Typography variant="h5" gutterBottom>
             {isEdit ? "Editar Usuario" : "Crear Usuario"}
           </Typography>
@@ -264,7 +265,7 @@ export const UserForm = ({
               <Grid size={{ md: 6, xs: 12 }}>
                 <Button
                   variant="contained"
-                  color="primary"
+                  color="secondary"
                   fullWidth
                   onClick={handleCancel}
                 >
@@ -284,7 +285,7 @@ export const UserForm = ({
               </Grid>
             </Grid>
           </form>
-        </Container>
+        </Box>
       </Fade>
     </Modal>
   );

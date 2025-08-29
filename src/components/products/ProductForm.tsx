@@ -60,6 +60,8 @@ interface ProductFormData {
   width: number;
   length: number;
   thickness: number;
+  minQuantity: number;
+  equivalence: number;
 }
 
 interface dataProducts {
@@ -103,6 +105,11 @@ export const ProductForm = ({
     borderRadius: 2,
   };
 
+  const maxThreeDecimals = (value: number) => {
+    if (value === undefined || value === null) return true;
+    return /^\d+(\.\d{1,3})?$/.test(value.toString());
+  };
+
   const schema = yup.object({
     sku: yup.string().required("SKU requerido"),
     name: yup.string().required("Nombre requerido"),
@@ -111,29 +118,59 @@ export const ProductForm = ({
     material: yup.string().required("Material requerido"),
     finish: yup.string().required("Acabado requerido"),
     color: yup.string().required("Color requerido"),
+
     width: yup
       .number()
       .transform((value, originalValue) =>
-        originalValue === "" ? undefined : value
+        originalValue === "" ? undefined : parseFloat(originalValue)
       )
       .min(0.1, "Ancho debe ser mayor a 0")
-      .required("Ancho requerido"),
+      .required("Ancho requerido")
+      .test("max-decimals", "Máximo 3 decimales permitidos", maxThreeDecimals),
 
     length: yup
       .number()
       .transform((value, originalValue) =>
-        originalValue === "" ? undefined : value
+        originalValue === "" ? undefined : parseFloat(originalValue)
       )
       .min(0.1, "Largo debe ser mayor a 0")
-      .required("Largo requerido"),
+      .required("Largo requerido")
+      .test("max-decimals", "Máximo 3 decimales permitidos", maxThreeDecimals),
 
     thickness: yup
       .number()
       .transform((value, originalValue) =>
-        originalValue === "" ? undefined : value
+        originalValue === "" ? undefined : parseFloat(originalValue)
       )
       .min(0.1, "Espesor debe ser mayor a 0")
-      .required("Espesor requerido"),
+      .required("Espesor requerido")
+      .test("max-decimals", "Máximo 3 decimales permitidos", maxThreeDecimals),
+
+    minQuantity: yup
+      .number()
+      .transform((value, originalValue) =>
+        originalValue === "" ? undefined : parseFloat(originalValue)
+      )
+      .min(-1, "No se permiten cantidades negativas")
+      .required("Cantidad mínima requerida")
+      .test(
+        "no-decimals",
+        "No se permiten decimales",
+        (value) => value === undefined || /^\d+$/.test(value.toString())
+      ),
+
+    equivalence: yup
+      .number()
+      .transform((value, originalValue) =>
+        originalValue === "" ? undefined : parseFloat(originalValue)
+      )
+      .min(0, "Equivalencia debe ser mayor a 0")
+      .required("Equivalencia requerida")
+      .test(
+        "no-decimals",
+        "No se permiten decimales",
+        (value) => value === undefined || /^\d+$/.test(value.toString())
+      ),
   });
 
   const {
@@ -183,6 +220,8 @@ export const ProductForm = ({
       formData.append("thicknessUnit", thicknessUnit);
       formData.append("color", data.color);
       formData.append("finish", data.finish);
+      formData.append("equivalence", String(data.equivalence));
+      formData.append("minStock", String(data.minQuantity));
 
       if (isEdit) {
         const hadImage = !!item?.productImage;
@@ -262,6 +301,8 @@ export const ProductForm = ({
         width: item.width,
         length: item.length,
         thickness: item.thickness,
+        minQuantity: item.minStock,
+        equivalence: item.equivalence,
       });
       setLengthUnit(item.lengthUnit);
       setWidthUnit(item.widthUnit);
@@ -372,6 +413,28 @@ export const ProductForm = ({
             <Grid container spacing={2} justifyContent="flex-end">
               <Grid size={{ md: 6, xs: 12 }}>
                 <TextField
+                  label="Contenido de rollos por caja"
+                  fullWidth
+                  {...register("equivalence")}
+                  type="number"
+                  InputProps={{ inputProps: { min: 1 } }}
+                  error={!!errors.equivalence}
+                  helperText={errors.equivalence?.message || " "}
+                />
+              </Grid>
+              <Grid size={{ md: 6, xs: 12 }}>
+                <TextField
+                  label="Alerta de stock (mínimo de stock)"
+                  type="number"
+                  InputProps={{ inputProps: { min: 0 } }}
+                  fullWidth
+                  {...register("minQuantity")}
+                  error={!!errors.minQuantity}
+                  helperText={errors.minQuantity?.message || " "}
+                />
+              </Grid>
+              <Grid size={{ md: 6, xs: 12 }}>
+                <TextField
                   label="Color"
                   fullWidth
                   {...register("color")}
@@ -412,6 +475,7 @@ export const ProductForm = ({
                   <OutlinedInput
                     id="outlined-adornment-width"
                     type="number"
+                    inputProps={{ step: "0.001" }}
                     {...register("width")}
                     endAdornment={
                       <InputAdornment position="end">
@@ -459,6 +523,7 @@ export const ProductForm = ({
                     id="outlined-adornment-length"
                     type="number"
                     {...register("length")}
+                    inputProps={{ step: "0.001" }}
                     endAdornment={
                       <InputAdornment position="end">
                         <ButtonGroup size="small">
@@ -505,6 +570,7 @@ export const ProductForm = ({
                     id="outlined-adornment-thickness"
                     type="number"
                     {...register("thickness")}
+                    inputProps={{ step: "0.001" }}
                     endAdornment={
                       <InputAdornment position="end">
                         <ButtonGroup size="small">
@@ -549,7 +615,7 @@ export const ProductForm = ({
               <Grid size={{ md: 6, xs: 12 }}>
                 <Button
                   variant="contained"
-                  color="primary"
+                  color="secondary"
                   fullWidth
                   onClick={handleCancel}
                 >

@@ -6,12 +6,17 @@ import {
   Divider,
   Fade,
   FormControl,
+  FormHelperText,
+  IconButton,
+  InputAdornment,
   InputLabel,
+  Menu,
   MenuItem,
   Modal,
   Paper,
   Select,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import * as yup from "yup";
@@ -20,9 +25,13 @@ import { useForm, Controller } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../../store/uiSlice";
 import { inventory, users } from "../../services/endpoints";
+import ImageIcon from "@mui/icons-material/Image";
 import { toast } from "react-toastify";
 import Grid from "@mui/material/Grid";
 import { useEffect, useState } from "react";
+import RemoveIcon from "@mui/icons-material/Remove";
+import AddIcon from "@mui/icons-material/Add";
+import TuneIcon from "@mui/icons-material/Tune";
 
 interface props {
   open: boolean;
@@ -48,6 +57,10 @@ export const InventoryForm = ({
   };
 
   const [product, setProduct] = useState<any>(null);
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const [adjustValue, setAdjustValue] = useState<number>(0);
+  const [adjustType, setAdjustType] = useState<"sumar" | "restar">("sumar");
+
   const schema = yup.object({
     // quantity not less than 0
     quantity: yup
@@ -132,54 +145,198 @@ export const InventoryForm = ({
             Editar registro de inventario
           </Typography>
 
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <Grid container spacing={2}>
-              <Grid size={12}>
-                <TextField
-                  label="Producto"
-                  fullWidth
-                  value={product?.name}
-                  disabled
-                />
-              </Grid>
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            gap={2}
+          >
+            {/* Imagen del producto */}
+            <Box
+              component="img"
+              src={product?.productImage || ImageIcon}
+              alt={product?.name}
+              sx={{
+                width: 120,
+                height: 120,
+                objectFit: "cover",
+                borderRadius: 2,
+                border: "1px solid #ddd",
+              }}
+            />
 
-              <Grid size={12}>
-                <TextField
-                  label="Cantidad"
-                  type="number"
-                  InputProps={{ inputProps: { min: 0 } }}
-                  fullWidth
-                  {...register("quantity")}
-                  error={!!errors.quantity}
-                  helperText={errors.quantity?.message || " "}
-                />
-              </Grid>
-            </Grid>
-            <Divider sx={{ my: 2 }} />
-            <Grid container spacing={2}>
-              <Grid size={{ md: 6, xs: 12 }}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  fullWidth
-                  onClick={handleCancel}
-                >
-                  Cancelar
-                </Button>
-              </Grid>
+            {/* Nombre del producto */}
+            <Typography variant="h6" fontWeight="bold">
+              {product?.name}
+            </Typography>
 
-              <Grid size={{ md: 6, xs: 12 }}>
-                <Button
-                  variant="contained"
-                  color="error"
-                  fullWidth
-                  type="submit"
-                >
-                  Guardar
-                </Button>
+            {/* Stock actual */}
+            <Typography variant="body2" color="text.secondary">
+              Stock actual: <strong>{data?.quantity}</strong> cajas (
+              {data?.quantity * data?.equivalence || 1} rollos)
+            </Typography>
+
+            {/* Formulario de ajuste */}
+            <form onSubmit={handleSubmit(onSubmit)} style={{ width: "100%" }}>
+              <Controller
+                name="quantity"
+                control={control}
+                render={({ field }) => (
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    gap={1}
+                  >
+                    <Box>
+                      <TextField
+                        {...field}
+                        label="Ajuste de stock"
+                        sx={{
+                          "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
+                            {
+                              display: "none",
+                            },
+                          "& input[type=number]": {
+                            MozAppearance: "textfield",
+                          },
+                          input: {
+                            textAlign: "center",
+                          },
+                        }}
+                        type="number"
+                        error={!!errors.quantity}
+                        helperText={errors.quantity?.message || " "}
+                        InputProps={{
+                          style: {
+                            color: "#000",
+                          },
+
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <IconButton
+                                onClick={() =>
+                                  field.onChange(Math.max(0, field.value - 1))
+                                }
+                              >
+                                <RemoveIcon />
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                onClick={() => field.onChange(field.value + 1)}
+                              >
+                                <AddIcon />
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Box>
+                    <IconButton
+                      onClick={(e) => setMenuAnchor(e.currentTarget)}
+                      color="primary"
+                      size="small"
+                      sx={{
+                        alignSelf: "flex-start",
+                        mt: 0.3,
+                      }}
+                    >
+                      <Tooltip title="Agregar o quitar cantidad">
+                        <TuneIcon />
+                      </Tooltip>
+                    </IconButton>
+                    <Menu
+                      anchorEl={menuAnchor}
+                      open={Boolean(menuAnchor)}
+                      onClose={() => setMenuAnchor(null)}
+                    >
+                      <Box sx={{ p: 2, width: 250 }}>
+                        <TextField
+                          label="Cantidad"
+                          type="number"
+                          fullWidth
+                          value={adjustValue}
+                          onChange={(e) =>
+                            setAdjustValue(Number(e.target.value))
+                          }
+                        />
+
+                        <Box
+                          display="flex"
+                          justifyContent="center"
+                          gap={1}
+                          mt={2}
+                        >
+                          <Button
+                            variant={
+                              adjustType === "sumar" ? "contained" : "outlined"
+                            }
+                            onClick={() => setAdjustType("sumar")}
+                          >
+                            Sumar
+                          </Button>
+                          <Button
+                            variant={
+                              adjustType === "restar" ? "contained" : "outlined"
+                            }
+                            onClick={() => setAdjustType("restar")}
+                          >
+                            Restar
+                          </Button>
+                        </Box>
+
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          color="primary"
+                          sx={{ mt: 2 }}
+                          onClick={() => {
+                            const newValue =
+                              adjustType === "sumar"
+                                ? field.value + adjustValue
+                                : Math.max(0, field.value - adjustValue);
+                            field.onChange(newValue);
+                            setMenuAnchor(null);
+                            setAdjustValue(0);
+                          }}
+                        >
+                          Actualizar
+                        </Button>
+                      </Box>
+                    </Menu>
+                  </Box>
+                )}
+              />
+
+              <Divider sx={{ my: 2 }} />
+
+              <Grid container spacing={1}>
+                <Grid size={{ md: 6, xs: 12 }}>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    color="secondary"
+                    onClick={handleCancel}
+                  >
+                    Cancelar
+                  </Button>
+                </Grid>
+                <Grid size={{ md: 6, xs: 12 }}>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    color="error"
+                    type="submit"
+                  >
+                    Actualizar
+                  </Button>
+                </Grid>
               </Grid>
-            </Grid>
-          </form>
+            </form>
+          </Box>
         </Container>
       </Fade>
     </Modal>
