@@ -173,7 +173,7 @@ export const InventoryForm = ({
             {/* Stock actual */}
             <Typography variant="body2" color="text.secondary">
               Stock actual: <strong>{data?.quantity}</strong> cajas (
-              {data?.quantity * data?.equivalence || 1} rollos)
+              {data?.quantity * data?.product?.equivalence || 1} rollos)
             </Typography>
 
             {/* Formulario de ajuste */}
