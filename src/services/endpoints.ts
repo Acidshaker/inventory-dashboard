@@ -72,4 +72,6 @@ export const inventory = {
   updateInventory: (id: string, data: any) =>
     api.patch(`/inventory/${id}`, data),
   deleteInventory: (id: string) => api.delete(`/inventory/${id}`),
+  verifyInventory: () => api.get(`/inventory/verify`),
+  verifyProductStock: (id: string) => api.post(`/inventory/${id}/verify`),
 };

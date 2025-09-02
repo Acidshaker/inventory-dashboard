@@ -69,18 +69,31 @@ export const tableConfig: Record<string, TableConfigItem> = {
         label: "Imagen del producto",
         align: "center",
         sortable: false,
+
         render: (_, row) => (
-          <Box
-            component="img"
-            src={row?.productImage || ImageIcon}
-            alt="imagen"
-            sx={{
-              width: 48,
-              height: 48,
-              objectFit: "cover",
-              borderRadius: 1,
-            }}
-          />
+          <>
+            {!row.productImage ? (
+              <ImageIcon
+                sx={{
+                  width: 48,
+                  height: 48,
+                  objectFit: "cover",
+                }}
+              />
+            ) : (
+              <Box
+                component="img"
+                src={row?.productImage}
+                alt="imagen"
+                sx={{
+                  width: 48,
+                  height: 48,
+                  objectFit: "cover",
+                  borderRadius: 1,
+                }}
+              />
+            )}
+          </>
         ),
       },
       {
@@ -170,17 +183,29 @@ export const tableConfig: Record<string, TableConfigItem> = {
         align: "center",
         sortable: false,
         render: (_, row) => (
-          <Box
-            component="img"
-            src={row.product?.productImage || ImageIcon}
-            alt="imagen"
-            sx={{
-              width: 48,
-              height: 48,
-              objectFit: "cover",
-              borderRadius: 1,
-            }}
-          />
+          <>
+            {!row.product.productImage ? (
+              <ImageIcon
+                sx={{
+                  width: 48,
+                  height: 48,
+                  objectFit: "cover",
+                }}
+              />
+            ) : (
+              <Box
+                component="img"
+                src={row?.product?.productImage}
+                alt="imagen"
+                sx={{
+                  width: 48,
+                  height: 48,
+                  objectFit: "cover",
+                  borderRadius: 1,
+                }}
+              />
+            )}
+          </>
         ),
       },
       {

@@ -152,9 +152,33 @@ export const InventoryForm = ({
             gap={2}
           >
             {/* Imagen del producto */}
-            <Box
+            {product?.productImage ? (
+              <Box
+                component="img"
+                src={product?.productImage}
+                alt={product?.name}
+                sx={{
+                  width: 120,
+                  height: 120,
+                  objectFit: "cover",
+                  borderRadius: 2,
+                  border: "1px solid #ddd",
+                }}
+              />
+            ) : (
+              <ImageIcon
+                sx={{
+                  width: 120,
+                  height: 120,
+                  objectFit: "cover",
+                  borderRadius: 2,
+                  border: "1px solid #ddd",
+                }}
+              />
+            )}
+            {/* <Box
               component="img"
-              src={product?.productImage || ImageIcon}
+              src={product?.productImage}
               alt={product?.name}
               sx={{
                 width: 120,
@@ -163,7 +187,7 @@ export const InventoryForm = ({
                 borderRadius: 2,
                 border: "1px solid #ddd",
               }}
-            />
+            /> */}
 
             {/* Nombre del producto */}
             <Typography variant="h6" fontWeight="bold">
